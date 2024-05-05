@@ -555,24 +555,6 @@ export class DiscordBot {
 
         let msg: Discord.Message | null | (Discord.Message | null)[] = null;
         let hook: Discord.Webhook | undefined;
-        if (botUser) {
-            const webhooks = await chan.fetchWebhooks();
-            hook = webhooks.filter((h) => h.name === "_matrix").first();
-            // Create a new webhook if none already exists
-            try {
-                if (!hook) {
-                    hook = await chan.createWebhook(
-                        "_matrix",
-                        {
-                            avatar: MATRIX_ICON_URL,
-                            reason: "Matrix Bridge: Allow rich user messages",
-                        });
-                }
-            } catch (err) {
-                // throw wrapError(err, Unstable.ForeignNetworkError, "Unable to create \"_matrix\" webhook");
-                log.warn("Unable to create _matrix webook:", err);
-            }
-        }
         try {
             this.channelLock.set(chan.id);
             if (!roomLookup.canSendEmbeds) {
