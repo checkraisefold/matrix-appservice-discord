@@ -559,10 +559,8 @@ export class DiscordBot {
             this.channelLock.set(chan.id);
             if (!roomLookup.canSendEmbeds) {
                 // NOTE: Don't send replies to discord if we are a puppet user.
+                embed.description = embed.author!.name + ": " + embed.description
                 msg = await chan.send(this.prepareEmbedSetUserAccount(embedSet), opts);
-                console.log("we are doing the first one king");
-                console.log(embed.description);
-                console.log(embed.author!.name);
             } else if (!botUser) {
                 opts.embed = this.prepareEmbedSetBotAccount(embedSet);
                 msg = await chan.send(embed.description, opts);
@@ -576,7 +574,6 @@ export class DiscordBot {
                     username: embed!.author!.name,
                 });
             } else {
-                console.log("we are doing the last one king");
                 opts.embed = this.prepareEmbedSetBot(embedSet);
                 msg = await chan.send("", opts);
             }
