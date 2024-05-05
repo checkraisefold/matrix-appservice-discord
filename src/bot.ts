@@ -440,7 +440,7 @@ export class DiscordBot {
         try {
             const client = await this.clientFactory.getClient(sender);
             const channel = client.channels.resolve(room);
-            if (channel && channel.type === "text") {
+            if (channel && (channel.type === "text" || channel.type === "group")) {
                 this.ClientFactory.bindMetricsToChannel(channel as Discord.TextChannel);
                 const lookupResult = new ChannelLookupResult();
                 lookupResult.channel = channel as Discord.TextChannel;
