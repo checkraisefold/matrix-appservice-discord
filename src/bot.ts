@@ -462,23 +462,12 @@ export class DiscordBot {
         }
     }
 
-    public async LookupRoom(server: string, room: string, sender?: string): Promise<ChannelLookupResult> {
+    public async LookupRoom(room: string, sender?: string): Promise<ChannelLookupResult> {
         const hasSender = sender !== null && sender !== undefined;
         try {
             const client = await this.clientFactory.getClient(sender);
-            const guild = client.guilds.resolve(server);
-            if (!guild) {
-                throw new Error(`Guild "${server}" not found`);
-            }
-            const channel = guild.channels.resolve(room);
+            const channel = client.channels.resolve(room);
             if (channel && channel.type === "text") {
-                if (hasSender) {
-                    const permissions = guild.me && channel.permissionsFor(guild.me);
-                    if (!permissions || !permissions.has("VIEW_CHANNEL") || !permissions.has("SEND_MESSAGES")) {
-                        throw new Error(`Can't send into channel`);
-                    }
-                }
-
                 this.ClientFactory.bindMetricsToChannel(channel as Discord.TextChannel);
                 const lookupResult = new ChannelLookupResult();
                 lookupResult.channel = channel as Discord.TextChannel;
@@ -491,7 +480,7 @@ export class DiscordBot {
             log.verbose("LookupRoom => ", err);
             if (hasSender) {
                 log.verbose(`Couldn't find guild/channel under user account. Falling back.`);
-                return await this.LookupRoom(server, room);
+                return await this.LookupRoom(room);
             }
             throw err;
         }
@@ -665,7 +654,7 @@ export class DiscordBot {
         log.info(`Redact event matched ${storeEvent.ResultCount} entries`);
         while (storeEvent.Next()) {
             log.info(`Deleting discord msg ${storeEvent.DiscordId}`);
-            const result = await this.LookupRoom(storeEvent.GuildId, storeEvent.ChannelId, event.sender);
+            const result = await this.LookupRoom(storeEvent.ChannelId, event.sender);
             const chan = result.channel;
 
             const msg = await chan.messages.fetch(storeEvent.DiscordId);

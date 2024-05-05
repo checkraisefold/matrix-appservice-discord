@@ -25,7 +25,7 @@ import { DbRoomStore, MatrixStoreRoom, RemoteStoreRoom } from "./db/roomstore";
 import { Appservice, Intent, IApplicationServiceProtocol } from "matrix-bot-sdk";
 
 const ICON_URL = "https://matrix.org/_matrix/media/r0/download/matrix.org/mlxoESwIsTbJrfXyAAogrNxA";
-const ROOM_NAME_PARTS = 2;
+const ROOM_NAME_PARTS = 1;
 
 // Note: The schedule must not have duplicate values to avoid problems in positioning.
 // Disabled because it complains about the values in the array
@@ -138,12 +138,12 @@ export class MatrixRoomHandler {
         const aliasLocalpart = alias.substring("#".length, alias.indexOf(":"));
         log.info("Got request for #", aliasLocalpart);
         const srvChanPair = aliasLocalpart.substring("_discord_".length).split("_", ROOM_NAME_PARTS);
-        if (srvChanPair.length < ROOM_NAME_PARTS || srvChanPair[0] === "" || srvChanPair[1] === "") {
+        if (srvChanPair.length < ROOM_NAME_PARTS || srvChanPair[0] === "") {
             log.warn(`Alias '${aliasLocalpart}' was missing a server and/or a channel`);
             return;
         }
         try {
-            const result = await this.discord.LookupRoom(srvChanPair[0], srvChanPair[1]);
+            const result = await this.discord.LookupRoom(srvChanPair[0]);
             log.info("Creating #", aliasLocalpart);
             return this.createMatrixRoom(result.channel, alias, aliasLocalpart);
         } catch (err) {
