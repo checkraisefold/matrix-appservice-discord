@@ -29,9 +29,9 @@ import { TimedCache } from "../structures/timedcache";
 const ENTRY_CACHE_LIMETIME = 30000;
 
 export class RemoteUser {
-    public displayname: string|null = null;
-    public avatarurl: string|null = null;
-    public avatarurlMxc: string|null = null;
+    public displayname: string | null = null;
+    public avatarurl: string | null = null;
+    public avatarurlMxc: string | null = null;
     public guildNicks: Map<string, string> = new Map();
     constructor(public readonly id: string) {
 
@@ -42,8 +42,8 @@ const log = new Log("DbUserStore");
 
 export interface IUserStoreEntry {
     id: string;
-    matrix: string|null;
-    remote: RemoteUser|null;
+    matrix: string | null;
+    remote: RemoteUser | null;
 }
 
 export class DbUserStore {
@@ -53,7 +53,7 @@ export class DbUserStore {
         this.remoteUserCache = new TimedCache(ENTRY_CACHE_LIMETIME);
     }
 
-    public async getRemoteUser(remoteId: string): Promise<RemoteUser|null> {
+    public async getRemoteUser(remoteId: string): Promise<RemoteUser | null> {
         const cached = this.remoteUserCache.get(remoteId);
         if (cached) {
             MetricPeg.get.storeCall("UserStore.getRemoteUser", true);
@@ -62,7 +62,7 @@ export class DbUserStore {
         MetricPeg.get.storeCall("UserStore.getRemoteUser", false);
 
         const row = await this.db.Get(
-            "SELECT * FROM user_entries WHERE remote_id = $id", {id: remoteId},
+            "SELECT * FROM user_entries WHERE remote_id = $id", { id: remoteId },
         );
         if (!row) {
             return null;
@@ -70,24 +70,14 @@ export class DbUserStore {
         const remoteUser = new RemoteUser(remoteId);
         const data = await this.db.Get(
             "SELECT * FROM remote_user_data WHERE remote_id = $remoteId",
-            {remoteId},
+            { remoteId },
         );
         if (data) {
-            remoteUser.avatarurl = data.avatarurl as string|null;
-            remoteUser.displayname = data.displayname as string|null;
-            remoteUser.avatarurlMxc = data.avatarurl_mxc as string|null;
+            remoteUser.avatarurl = data.avatarurl as string | null;
+            remoteUser.displayname = data.displayname as string | null;
+            remoteUser.avatarurlMxc = data.avatarurl_mxc as string | null;
         }
-        const nicks = await this.db.All(
-            "SELECT guild_id, nick FROM remote_user_guild_nicks WHERE remote_id = $remoteId",
-            {remoteId},
-        );
-        if (nicks) {
-            /* eslint-disable @typescript-eslint/naming-convention */
-            nicks.forEach(({nick, guild_id}) => {
-                remoteUser.guildNicks.set(guild_id as string, nick as string);
-            });
-            /* eslint-enable @typescript-eslint/naming-convention */
-        }
+
         this.remoteUserCache.set(remoteId, remoteUser);
         return remoteUser;
     }
@@ -97,7 +87,7 @@ export class DbUserStore {
         this.remoteUserCache.delete(user.id);
         const existingData = await this.db.Get(
             "SELECT * FROM remote_user_data WHERE remote_id = $remoteId",
-            {remoteId: user.id},
+            { remoteId: user.id },
         );
         if (!existingData) {
             await this.db.Run(
@@ -129,46 +119,6 @@ avatarurl_mxc = $avatarurl_mxc WHERE remote_id = $remote_id`,
                     /* eslint-enable @typescript-eslint/naming-convention */
                 });
         }
-        const existingNicks = {};
-        (await this.db.All(
-            "SELECT guild_id, nick FROM remote_user_guild_nicks WHERE remote_id = $remoteId",
-            {remoteId: user.id},
-        )).forEach(({guild_id, nick}) => existingNicks[guild_id as string] = nick); // eslint-disable-line @typescript-eslint/naming-convention
-        for (const guildId of user.guildNicks.keys()) {
-            const nick = user.guildNicks.get(guildId) || null;
-            if (existingData) {
-                if (existingNicks[guildId] === nick) {
-                    return;
-                } else if (existingNicks[guildId]) {
-                    await this.db.Run(
-                        `UPDATE remote_user_guild_nicks SET nick = $nick
-WHERE remote_id = $remote_id
-AND guild_id = $guild_id`,
-                        {
-                            /* eslint-disable @typescript-eslint/naming-convention */
-                            guild_id: guildId,
-                            nick,
-                            remote_id: user.id,
-                            /* eslint-enable @typescript-eslint/naming-convention */
-                        });
-                    return;
-                }
-            }
-            await this.db.Run(
-                `INSERT INTO remote_user_guild_nicks VALUES (
-                $remote_id,
-                $guild_id,
-                $nick
-            )`,
-                {
-                    /* eslint-disable @typescript-eslint/naming-convention */
-                    guild_id: guildId,
-                    nick,
-                    remote_id: user.id,
-                    /* eslint-enable @typescript-eslint/naming-convention */
-                });
-        }
-
     }
 
     public async linkUsers(matrixId: string, remoteId: string) {
