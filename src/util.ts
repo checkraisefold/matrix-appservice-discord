@@ -132,7 +132,7 @@ export class Util {
         await intent.ensureRegistered();
         const matrixUsers = {};
         let matches = 0;
-        await Promise.all(channelMxids.map( async (chan) => {
+        await Promise.all(channelMxids.map(async (chan) => {
             (await client.getRoomMembers(chan, undefined, ["leave"])).forEach((member) => {
                 if (member.membership === "invite") {
                     return;
@@ -238,7 +238,7 @@ export class Util {
         parameters: ICommandParameters,
         permissionCheck?: CommandPermissonCheck,
     ): Promise<string> {
-        const {command, args} = Util.MsgToArgs(msg, prefix);
+        const { command, args } = Util.MsgToArgs(msg, prefix);
         if (command === "help") {
             return await Util.HandleHelpCommand(prefix, actions, parameters, args, permissionCheck);
         }
@@ -247,7 +247,7 @@ export class Util {
             return `**ERROR:** unknown command. Try \`${prefix} help\` to see all commands`;
         }
         const action = actions[command];
-        if (action.permission !== undefined && permissionCheck) {
+        /*if (action.permission !== undefined && permissionCheck) {
             const permCheck = await permissionCheck(action.permission);
             if (typeof permCheck === "string") {
                 return `**ERROR:** ${permCheck}`;
@@ -256,7 +256,7 @@ export class Util {
                 return `**ERROR:** insufficient permissions to use this command! ` +
                     `Try \`${prefix} help\` to see all available commands`;
             }
-        }
+        }*/
         if (action.params.length === 1) {
             args[0] = args.join(" ");
         }
@@ -293,7 +293,7 @@ export class Util {
                 args = allArgs;
             }
         }
-        return {command, args};
+        return { command, args };
     }
 
     public static async AsyncForEach<T>(arr: T[], callback: (item: T, i: number, a: T[]) => Promise<void>) {
@@ -416,7 +416,7 @@ export function isInstanceOfTypes(obj: object, types: Type[]): boolean {
  * the original error (stacktrace and error message).
  */
 export function wrapError<T extends Error>(
-    oldError: object|Error,
+    oldError: object | Error,
     newErrorType: new (...args: any[]) => T,  // tslint:disable-line no-any
     ...args: any[]  // tslint:disable-line no-any trailing-comma
 ): T {
