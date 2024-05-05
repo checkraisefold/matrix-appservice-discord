@@ -861,7 +861,6 @@ export class DiscordBot {
             evt.MatrixId = `${eventId};${roomId}`;
             evt.DiscordId = msgID;
             evt.ChannelId = chan.id;
-            evt.GuildId = guild.id;
             await this.store.Insert(evt);
             this.userActivity.updateUserActivity(intent.userId);
         });
@@ -990,9 +989,6 @@ export class DiscordBot {
                         evt.MatrixId = `${eventId};${room}`;
                         evt.DiscordId = msg.id;
                         evt.ChannelId = msg.channel.id;
-                        if (msg.guild) {
-                            evt.GuildId = msg.guild.id;
-                        }
                         await this.store.Insert(evt);
                         this.userActivity.updateUserActivity(intent.userId);
                     });
@@ -1033,9 +1029,6 @@ export class DiscordBot {
                     evt.MatrixId = `${eventId};${room}`;
                     evt.DiscordId = msg.id;
                     evt.ChannelId = msg.channel.id;
-                    if (msg.guild) {
-                        evt.GuildId = msg.guild.id;
-                    }
                     await this.store.Insert(evt);
                     this.userActivity.updateUserActivity(intent.userId);
                 };
@@ -1127,7 +1120,6 @@ export class DiscordBot {
                 const evt = new DbEvent();
                 evt.MatrixId = `${event.event_id};${event.room_id}`;
                 evt.DiscordId = m.id;
-                evt.GuildId = chan.guild.id;
                 evt.ChannelId = chan.id;
                 await this.store.Insert(evt);
             } catch (err) {
