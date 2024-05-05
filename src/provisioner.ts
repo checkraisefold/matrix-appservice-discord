@@ -68,7 +68,7 @@ export class Provisioner {
             try {
                 await this.channelSync.OnUnbridge(channel, roomId);
             } catch (ex) {
-                log.error(`Failed to cleanly unbridge ${channel.id} ${channel.guild} from ${roomId}`, ex);
+                log.error(`Failed to cleanly unbridge ${channel.id} from ${roomId}`, ex);
             }
         }));
         await this.roomStore.removeEntriesByRemoteRoomId(remoteRoom.getId());
@@ -78,7 +78,7 @@ export class Provisioner {
         channel: Discord.TextChannel,
         requestor: string,
         timeout: number = PERMISSION_REQUEST_TIMEOUT): Promise<string> {
-        const channelId = `${channel.guild.id}/${channel.id}`;
+        const channelId = `${channel.id}`;
 
         let responded = false;
         let resolve: (msg: string) => void;

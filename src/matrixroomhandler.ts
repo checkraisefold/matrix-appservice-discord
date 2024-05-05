@@ -248,7 +248,7 @@ export class MatrixRoomHandler {
         alias: string,
         aliasLocalpart: string
     ) {
-        const remote = new RemoteStoreRoom(`discord_${channel.guild.id}_${channel.id}`, {
+        const remote = new RemoteStoreRoom(`discord_${channel.id}`, {
             /* eslint-disable @typescript-eslint/naming-convention */
             discord_channel: channel.id,
             discord_type: "text",
