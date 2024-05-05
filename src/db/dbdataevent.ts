@@ -69,7 +69,6 @@ export class DbEvent implements IDbDataMany {
                 this.rows.push({
                     /* eslint-disable @typescript-eslint/naming-convention */
                     ...row,
-                    guild_id: rowD.guild_id,
                     channel_id: rowD.channel_id,
                     /* eslint-enable @typescript-eslint/naming-convention */
                 });
@@ -85,7 +84,6 @@ export class DbEvent implements IDbDataMany {
         const item = this.rows.shift();
         this.MatrixId = item.matrix_id;
         this.DiscordId = item.discord_id;
-        this.GuildId = item.guild_id;
         this.ChannelId = item.channel_id;
         return true;
     }
@@ -112,11 +110,10 @@ export class DbEvent implements IDbDataMany {
         }
         return store.db.Run(`
             INSERT INTO discord_msg_store
-            (msg_id, guild_id, channel_id)
-            VALUES ($msg_id, $guild_id, $channel_id);`, {
+            (msg_id, channel_id)
+            VALUES ($msg_id, $channel_id);`, {
             /* eslint-disable @typescript-eslint/naming-convention */
             channel_id: this.ChannelId,
-            guild_id: this.GuildId,
             msg_id: this.DiscordId,
             /* eslint-enable @typescript-eslint/naming-convention */
         });

@@ -28,9 +28,8 @@ export class Schema implements IDbSchema {
         await store.createTable(`
             CREATE TABLE remote_user_guild_nicks (
                 remote_id TEXT NOT NULL,
-                guild_id TEXT NOT NULL,
                 nick TEXT NOT NULL,
-                PRIMARY KEY(remote_id, guild_id)
+                PRIMARY KEY(remote_id)
         );`, "remote_user_guild_nicks");
 
         await store.createTable(`

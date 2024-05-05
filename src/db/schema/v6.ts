@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import {IDbSchema} from "./dbschema";
-import {DiscordStore} from "../../store";
+import { IDbSchema } from "./dbschema";
+import { DiscordStore } from "../../store";
 
 export class Schema implements IDbSchema {
     public description = "create event_store and discord_msg_store tables";
@@ -32,7 +32,6 @@ export class Schema implements IDbSchema {
         await store.createTable(`
             CREATE TABLE discord_msg_store (
                 msg_id TEXT NOT NULL,
-                guild_id TEXT NOT NULL,
                 channel_id TEXT NOT NULL,
                 PRIMARY KEY(msg_id)
         );`, "discord_msg_store");
