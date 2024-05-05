@@ -561,7 +561,8 @@ export class DiscordBot {
                 // NOTE: Don't send replies to discord if we are a puppet user.
                 msg = await chan.send(this.prepareEmbedSetUserAccount(embedSet), opts);
                 console.log("we are doing the first one king");
-                console.log(embedSet.messageEmbed.description);
+                console.log(embed.description);
+                console.log(embed.author!.name);
             } else if (!botUser) {
                 opts.embed = this.prepareEmbedSetBotAccount(embedSet);
                 msg = await chan.send(embed.description, opts);
