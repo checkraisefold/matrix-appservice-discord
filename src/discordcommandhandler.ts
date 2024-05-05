@@ -30,10 +30,6 @@ export class DiscordCommandHandler {
 
     public async Process(msg: Discord.Message) {
         const chan = msg.channel as Discord.TextChannel;
-        if (!chan.guild) {
-            await msg.channel.send("**ERROR:** only available for guild channels");
-            return;
-        }
         if (!msg.member) {
             await msg.channel.send("**ERROR:** could not determine message member");
             return;
@@ -107,7 +103,7 @@ export class DiscordCommandHandler {
             },
         };
 
-        const permissionCheck: CommandPermissonCheck = async (permission: string|string[]) => {
+        const permissionCheck: CommandPermissonCheck = async (permission: string | string[]) => {
             if (!Array.isArray(permission)) {
                 permission = [permission];
             }
@@ -118,8 +114,8 @@ export class DiscordCommandHandler {
         await msg.channel.send(reply);
     }
 
-    private ModerationActionGenerator(discordChannel: Discord.TextChannel, funcKey: "kick"|"ban"|"unban") {
-        return async ({name}) => {
+    private ModerationActionGenerator(discordChannel: Discord.TextChannel, funcKey: "kick" | "ban" | "unban") {
+        return async ({ name }) => {
             let allChannelMxids: string[] = [];
             await Promise.all(discordChannel.guild.channels.cache.map(async (chan) => {
                 try {

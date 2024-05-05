@@ -30,22 +30,20 @@ const log = new Log("DbRoomStore");
  */
 
 interface IRemoteRoomData extends IRemoteRoomDataLazy {
-    discord_guild: string;
     discord_channel: string;
 }
 
-interface IRemoteRoomDataLazy  {
-    discord_guild?: string;
+interface IRemoteRoomDataLazy {
     discord_channel?: string;
-    discord_name?: string|null;
-    discord_topic?: string|null;
-    discord_type?: string|null;
-    discord_iconurl?: string|null;
-    discord_iconurl_mxc?: string|null;
-    update_name?: number|boolean|null;
-    update_topic?: number|boolean|null;
-    update_icon?: number|boolean|null;
-    plumbed?: number|boolean|null;
+    discord_name?: string | null;
+    discord_topic?: string | null;
+    discord_type?: string | null;
+    discord_iconurl?: string | null;
+    discord_iconurl_mxc?: string | null;
+    update_name?: number | boolean | null;
+    update_topic?: number | boolean | null;
+    update_icon?: number | boolean | null;
+    plumbed?: number | boolean | null;
 }
 
 export class RemoteStoreRoom {
@@ -53,7 +51,7 @@ export class RemoteStoreRoom {
     constructor(public readonly roomId: string, data: IRemoteRoomDataLazy) {
         for (const k of ["discord_guild", "discord_channel", "discord_name",
             "discord_topic", "discord_iconurl", "discord_iconurl_mxc", "discord_type"]) {
-            data[k] = typeof(data[k]) === "number" ? String(data[k]) : data[k] || null;
+            data[k] = typeof (data[k]) === "number" ? String(data[k]) : data[k] || null;
         }
         for (const k of ["update_name", "update_topic", "update_icon", "plumbed"]) {
             data[k] = Number(data[k]) || 0;
@@ -65,12 +63,12 @@ export class RemoteStoreRoom {
         return this.roomId;
     }
 
-    public get(key: string): string|boolean|null {
+    public get(key: string): string | boolean | null {
         return this.data[key];
     }
 
-    public set(key: string, value: string|boolean|null) {
-        this.data[key] = typeof(value) === "boolean" ? Number(value) : value;
+    public set(key: string, value: string | boolean | null) {
+        this.data[key] = typeof (value) === "boolean" ? Number(value) : value;
     }
 }
 
@@ -84,8 +82,8 @@ export class MatrixStoreRoom {
 
 export interface IRoomStoreEntry {
     id: string;
-    matrix: MatrixStoreRoom|null;
-    remote: RemoteStoreRoom|null;
+    matrix: MatrixStoreRoom | null;
+    remote: RemoteStoreRoom | null;
 }
 
 const ENTRY_CACHE_LIMETIME = 30000;
@@ -122,7 +120,7 @@ export class DbRoomStore {
     }
 
     public async upsertEntry(entry: IRoomStoreEntry) {
-        const row = (await this.db.Get("SELECT * FROM room_entries WHERE id = $id", {id: entry.id})) || {};
+        const row = (await this.db.Get("SELECT * FROM room_entries WHERE id = $id", { id: entry.id })) || {};
 
         if (!row.id) {
             // Doesn't exist at all, create the room_entries row.
@@ -162,8 +160,8 @@ export class DbRoomStore {
             await this.db.Run(`UPDATE room_entries SET ${items.join(", ")} WHERE id = $id`,
                 {
                     id: entry.id,
-                    matrixId: matrixId as string|null,
-                    remoteId: remoteId as string|null,
+                    matrixId: matrixId as string | null,
+                    remoteId: remoteId as string | null,
                 },
             );
         }
@@ -182,16 +180,16 @@ export class DbRoomStore {
         }
         MetricPeg.get.storeCall("RoomStore.getEntriesByMatrixId", false);
         const entries = await this.db.All(
-            "SELECT * FROM room_entries WHERE matrix_id = $id", {id: matrixId},
+            "SELECT * FROM room_entries WHERE matrix_id = $id", { id: matrixId },
         );
         const res: IRoomStoreEntry[] = [];
         for (const entry of entries) {
-            let remote: RemoteStoreRoom|null = null;
+            let remote: RemoteStoreRoom | null = null;
             if (entry.remote_id) {
                 const remoteId = entry.remote_id as string;
                 const row = await this.db.Get(
                     "SELECT * FROM remote_room_data WHERE room_id = $remoteId",
-                    {remoteId},
+                    { remoteId },
                 );
                 if (row) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -215,19 +213,19 @@ export class DbRoomStore {
 
     public async getEntriesByMatrixIds(matrixIds: string[]): Promise<IRoomStoreEntry[]> {
         MetricPeg.get.storeCall("RoomStore.getEntriesByMatrixIds", false);
-        const mxIdMap = { };
+        const mxIdMap = {};
         matrixIds.forEach((mxId, i) => mxIdMap[i] = mxId);
         const sql = `SELECT * FROM room_entries WHERE matrix_id IN (${matrixIds.map((_, id) => `\$${id}`).join(", ")})`;
         const entries = await this.db.All(sql, mxIdMap);
         const res: IRoomStoreEntry[] = [];
         for (const entry of entries) {
-            let remote: RemoteStoreRoom|null = null;
+            let remote: RemoteStoreRoom | null = null;
             const matrixId = entry.matrix_id as string || "";
             const remoteId = entry.remote_id as string;
             if (remoteId) {
                 const row = await this.db.Get(
                     "SELECT * FROM remote_room_data WHERE room_id = $rid",
-                    {rid: remoteId},
+                    { rid: remoteId },
                 );
                 if (row) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -271,7 +269,7 @@ export class DbRoomStore {
 
     public async getEntriesByRemoteRoomData(data: IRemoteRoomDataLazy): Promise<IRoomStoreEntry[]> {
         MetricPeg.get.storeCall("RoomStore.getEntriesByRemoteRoomData", false);
-        Object.keys(data).filter((k) => typeof(data[k]) === "boolean").forEach((k) => {
+        Object.keys(data).filter((k) => typeof (data[k]) === "boolean").forEach((k) => {
             data[k] = Number(data[k]);
         });
 
@@ -298,18 +296,18 @@ export class DbRoomStore {
 
     public async removeEntriesByRemoteRoomId(remoteId: string) {
         MetricPeg.get.storeCall("RoomStore.removeEntriesByRemoteRoomId", false);
-        await this.db.Run(`DELETE FROM room_entries WHERE remote_id = $remoteId`, {remoteId});
-        await this.db.Run(`DELETE FROM remote_room_data WHERE room_id = $remoteId`, {remoteId});
+        await this.db.Run(`DELETE FROM room_entries WHERE remote_id = $remoteId`, { remoteId });
+        await this.db.Run(`DELETE FROM remote_room_data WHERE room_id = $remoteId`, { remoteId });
     }
 
     public async removeEntriesByMatrixRoomId(matrixId: string) {
         MetricPeg.get.storeCall("RoomStore.removeEntriesByMatrixRoomId", false);
-        const entries = (await this.db.All(`SELECT * FROM room_entries WHERE matrix_id = $matrixId`, {matrixId})) || [];
+        const entries = (await this.db.All(`SELECT * FROM room_entries WHERE matrix_id = $matrixId`, { matrixId })) || [];
         await Util.AsyncForEach(entries, async (entry) => {
             if (entry.remote_id) {
                 await this.removeEntriesByRemoteRoomId(entry.remote_id as string);
             } else if (entry.matrix_id) {
-                await this.db.Run(`DELETE FROM room_entries WHERE matrix_id = $matrixId`, {matrixId: entry.matrix_id});
+                await this.db.Run(`DELETE FROM room_entries WHERE matrix_id = $matrixId`, { matrixId: entry.matrix_id });
             }
         });
     }
@@ -322,22 +320,21 @@ export class DbRoomStore {
 
         const existingRow = await this.db.Get(
             "SELECT * FROM remote_room_data WHERE room_id = $id",
-            {id: room.roomId},
+            { id: room.roomId },
         );
 
         const data = {
             /* eslint-disable @typescript-eslint/naming-convention */
-            discord_channel:     room.data.discord_channel,
-            discord_guild:       room.data.discord_guild,
-            discord_iconurl:     room.data.discord_iconurl,
+            discord_channel: room.data.discord_channel,
+            discord_iconurl: room.data.discord_iconurl,
             discord_iconurl_mxc: room.data.discord_iconurl_mxc,
-            discord_name:        room.data.discord_name,
-            discord_topic:       room.data.discord_topic,
-            discord_type:        room.data.discord_type,
-            plumbed:             Number(room.data.plumbed || 0),
-            update_icon:         Number(room.data.update_icon || 0),
-            update_name:         Number(room.data.update_name || 0),
-            update_topic:        Number(room.data.update_topic || 0),
+            discord_name: room.data.discord_name,
+            discord_topic: room.data.discord_topic,
+            discord_type: room.data.discord_type,
+            plumbed: Number(room.data.plumbed || 0),
+            update_icon: Number(room.data.update_icon || 0),
+            update_name: Number(room.data.update_name || 0),
+            update_topic: Number(room.data.update_topic || 0),
             /* eslint-enable @typescript-eslint/naming-convention */
         } as IRemoteRoomData;
 
@@ -367,21 +364,21 @@ export class DbRoomStore {
             return;
         }
 
-        const keysToUpdate = { } as IRemoteRoomDataLazy;
+        const keysToUpdate = {} as IRemoteRoomDataLazy;
 
         // New keys
         Object.keys(room.data).filter(
             (k: string) => existingRow[k] === null).forEach((key) => {
-            const val = room.data[key];
-            keysToUpdate[key] = typeof val === "boolean" ? Number(val) : val;
-        });
+                const val = room.data[key];
+                keysToUpdate[key] = typeof val === "boolean" ? Number(val) : val;
+            });
 
         // Updated keys
         Object.keys(room.data).filter(
             (k: string) => existingRow[k] !== room.data[k]).forEach((key) => {
-            const val = room.data[key];
-            keysToUpdate[key] = typeof val === "boolean" ? Number(val) : val;
-        });
+                const val = room.data[key];
+                keysToUpdate[key] = typeof val === "boolean" ? Number(val) : val;
+            });
 
         if (Object.keys(keysToUpdate).length === 0) {
             return;
@@ -398,7 +395,7 @@ export class DbRoomStore {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     ...keysToUpdate as any,
                 });
-            log.verbose(`Upserted room ${  room.roomId}`);
+            log.verbose(`Upserted room ${room.roomId}`);
         } catch (ex) {
             log.error("Failed to upsert room", ex);
             throw Error("Failed to upsert room");

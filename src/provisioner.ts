@@ -30,9 +30,8 @@ export class Provisioner {
     constructor(private roomStore: DbRoomStore, private channelSync: ChannelSyncroniser) { }
 
     public async BridgeMatrixRoom(channel: Discord.TextChannel, roomId: string) {
-        const remote = new RemoteStoreRoom(`discord_${channel.guild.id}_${channel.id}_bridged`, {
+        const remote = new RemoteStoreRoom(`discord_${channel.id}_bridged`, {
             discord_channel: channel.id,
-            discord_guild: channel.guild.id,
             discord_type: "text",
             plumbed: true,
         });
@@ -52,7 +51,6 @@ export class Provisioner {
     public async UnbridgeChannel(channel: Discord.TextChannel, rId?: string) {
         const roomsRes = await this.roomStore.getEntriesByRemoteRoomData({
             discord_channel: channel.id,
-            discord_guild: channel.guild.id,
             plumbed: true,
         });
         if (roomsRes.length === 0) {
@@ -66,7 +64,7 @@ export class Provisioner {
             // Kill em all.
             roomsToUnbridge = roomsRes.map((entry) => entry.matrix!.roomId);
         }
-        await Promise.all(roomsToUnbridge.map( async (roomId) => {
+        await Promise.all(roomsToUnbridge.map(async (roomId) => {
             try {
                 await this.channelSync.OnUnbridge(channel, roomId);
             } catch (ex) {
@@ -85,7 +83,7 @@ export class Provisioner {
         let responded = false;
         let resolve: (msg: string) => void;
         let reject: (err: Error) => void;
-        const deferP: Promise<string> = new Promise((res, rej) => {resolve = res; reject = rej; });
+        const deferP: Promise<string> = new Promise((res, rej) => { resolve = res; reject = rej; });
 
         const approveFn = (approved: boolean, expired = false) => {
             if (responded) {
@@ -115,7 +113,7 @@ export class Provisioner {
     }
 
     public HasPendingRequest(channel: Discord.TextChannel): boolean {
-        const channelId = `${channel.guild.id}/${channel.id}`;
+        const channelId = `${channel.id}`;
         return this.pendingRequests.has(channelId);
     }
 
@@ -124,7 +122,7 @@ export class Provisioner {
         member: Discord.GuildMember,
         allow: boolean,
     ): Promise<boolean> {
-        const channelId = `${channel.guild.id}/${channel.id}`;
+        const channelId = `${channel.id}`;
         if (!this.pendingRequests.has(channelId)) {
             return false; // no change, so false
         }

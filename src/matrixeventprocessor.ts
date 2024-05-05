@@ -179,10 +179,9 @@ export class MatrixEventProcessor {
      * @throws {Unstable.ForeignNetworkError}
      */
     public async ProcessMsgEvent(event: IMatrixEvent, room: RemoteStoreRoom): Promise<void> {
-        const guildId = room.data.discord_guild!;
         const channelId = room.data.discord_channel!;
         const mxClient = this.bridge.botClient;
-        log.verbose(`Looking up ${guildId}_${channelId}`);
+        log.verbose(`Looking up ${channelId}`);
         const roomLookup = await this.discord.LookupRoom(channelId, event.sender);
         const chan = roomLookup.channel;
 

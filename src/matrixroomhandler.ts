@@ -251,7 +251,6 @@ export class MatrixRoomHandler {
         const remote = new RemoteStoreRoom(`discord_${channel.guild.id}_${channel.id}`, {
             /* eslint-disable @typescript-eslint/naming-convention */
             discord_channel: channel.id,
-            discord_guild: channel.guild.id,
             discord_type: "text",
             update_icon: 1,
             update_name: 1,

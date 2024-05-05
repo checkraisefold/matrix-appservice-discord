@@ -47,7 +47,7 @@ export class MatrixCommandHandler {
         this.botJoinedRooms.add(event.room_id);
     }
 
-    public async Process(event: IMatrixEvent, roomEntry: IRoomStoreEntry|null) {
+    public async Process(event: IMatrixEvent, roomEntry: IRoomStoreEntry | null) {
         if (!(await this.isBotInRoom(event.room_id))) {
             log.warn(`Bot is not in ${event.room_id}. Ignoring command`);
             return;
@@ -67,29 +67,29 @@ export class MatrixCommandHandler {
                     "   The URL is formatted as https://discord.com/channels/GUILD_ID/CHANNEL_ID\n" +
                     "5. Enjoy your new bridge!",
                 /* eslint-enable prefer-template */
-                params: ["guildId", "channelId"],
+                params: ["channelId"],
                 permission: {
                     cat: "events",
                     level: PROVISIONING_DEFAULT_POWER_LEVEL,
                     selfService: true,
                     subcat: "m.room.power_levels",
                 },
-                run: async ({guildId, channelId}) => {
+                run: async ({ channelId }) => {
                     if (roomEntry && roomEntry.remote) {
                         return "This room is already bridged to a Discord guild.";
                     }
-                    if (!guildId || !channelId) {
+                    if (!channelId) {
                         return "Invalid syntax. For more information try `!discord help bridge`";
                     }
                     if (await this.provisioner.RoomCountLimitReached(this.config.limits.roomCount)) {
-                        log.info(`Room count limit (value: ${this.config.limits.roomCount}) reached: Rejecting command to bridge new matrix room ${event.room_id} to ${guildId}/${channelId}`);
+                        log.info(`Room count limit (value: ${this.config.limits.roomCount}) reached: Rejecting command to bridge new matrix room ${event.room_id} to ${channelId}`);
                         return `This bridge has reached its room limit of ${this.config.limits.roomCount}. Unbridge another room to allow for new connections.`;
                     }
                     try {
-                        const discordResult = await this.discord.LookupRoom(guildId, channelId);
+                        const discordResult = await this.discord.LookupRoom(channelId);
                         const channel = discordResult.channel as Discord.TextChannel;
 
-                        log.info(`Bridging matrix room ${event.room_id} to ${guildId}/${channelId}`);
+                        log.info(`Bridging matrix room ${event.room_id} to ${channelId}`);
                         await this.bridge.botIntent.sendText(
                             event.room_id,
                             "I'm asking permission from the guild administrators to make this bridge.",
@@ -105,7 +105,7 @@ export class MatrixCommandHandler {
                             return err.message;
                         }
 
-                        log.error(`Error bridging ${event.room_id} to ${guildId}/${channelId}`);
+                        log.error(`Error bridging ${event.room_id} to ${channelId}`);
                         log.error(err);
                         return "There was a problem bridging that channel - has the guild owner approved the bridge?";
                     }
@@ -128,7 +128,6 @@ export class MatrixCommandHandler {
                         return "This room cannot be unbridged.";
                     }
                     const res = await this.discord.LookupRoom(
-                        roomEntry.remote.data.discord_guild!,
                         roomEntry.remote.data.discord_channel!,
                     );
                     try {
@@ -201,7 +200,7 @@ export class MatrixCommandHandler {
 
     private async isBotInRoom(roomId: string): Promise<boolean> {
         // Update the room cache, if not done already.
-        if (Date.now () - this.botJoinedRoomsCacheUpdatedAt > ROOM_CACHE_MAXAGE_MS) {
+        if (Date.now() - this.botJoinedRoomsCacheUpdatedAt > ROOM_CACHE_MAXAGE_MS) {
             log.verbose("Updating room cache for bot...");
             try {
                 log.verbose("Got new room cache for bot");
