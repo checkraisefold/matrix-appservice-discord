@@ -53,7 +53,7 @@ export class DiscordClientFactory {
         });
 
         try {
-            await this.botClient.login(this.config.botToken, true);
+            await this.botClient.login(this.config.botToken, false);
             log.info("Waiting for shardReady signal");
             await waitPromise;
             log.info("Got shardReady signal");

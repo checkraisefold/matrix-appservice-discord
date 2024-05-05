@@ -93,7 +93,7 @@ class DiscordBridgeBlocker extends BridgeBlocker {
 
 export class DiscordBot {
     private clientFactory: DiscordClientFactory;
-    private _bot: Discord.Client|undefined;
+    private _bot: Discord.Client | undefined;
     private sentMessages: string[];
     private lastEventIds: { [channelId: string]: string };
     private discordMsgProcessor: DiscordMessageProcessor;
@@ -105,7 +105,7 @@ export class DiscordBot {
     private provisioner: Provisioner;
     private discordCommandHandler: DiscordCommandHandler;
     /* Caches */
-    private roomIdsForGuildCache: Map<string, {roomIds: string[], ts: number}> = new Map();
+    private roomIdsForGuildCache: Map<string, { roomIds: string[], ts: number }> = new Map();
 
     /* Handles messages queued up to be sent to matrix from discord. */
     private discordMessageQueue: { [channelId: string]: Promise<void> };
@@ -187,7 +187,7 @@ export class DiscordBot {
     }
 
     public GetIntentFromDiscordMember(member: Discord.GuildMember | Discord.PartialUser | Discord.User,
-                                      webhookID: string|null = null): Intent {
+        webhookID: string | null = null): Intent {
         if (webhookID) {
             // webhookID and user IDs are the same, they are unique, so no need to prefix _webhook_
             const name = member instanceof Discord.GuildMember ? member.user.username : member.username;
@@ -358,7 +358,7 @@ export class DiscordBot {
                 await this.userSync.OnAddGuildMember(member);
             } catch (err) { log.error("Exception thrown while handling \"guildMemberAdd\" event", err); }
         });
-        client.on("guildMemberRemove", async (member) =>  {
+        client.on("guildMemberRemove", async (member) => {
             try {
                 if (!(member instanceof Discord.GuildMember)) {
                     log.warn(`Ignoring update for ${member.guild.id} ${member.id}. User was partial.`);
@@ -441,13 +441,13 @@ export class DiscordBot {
         if (channelName.startsWith("#")) {
             channelName = channelName.substring(1);
         }
-        if (this.bot.guilds.cache.has(guildId) ) {
+        if (this.bot.guilds.cache.has(guildId)) {
             const guild = this.bot.guilds.cache.get(guildId);
             return guild!.channels.cache.filter((channel) => {
                 return channel.name.toLowerCase() === channelName.toLowerCase(); // Implement searching in the future.
             }).map((channel) => {
                 return {
-                    alias: `#_discord_${guild!.id}_${channel.id}:${this.config.bridge.domain}`,
+                    alias: `#_discord_${channel.id}:${this.config.bridge.domain}`,
                     fields: {
                         channel_id: channel.id,
                         channel_name: channel.name,
@@ -607,8 +607,8 @@ export class DiscordBot {
                         });
                 }
             } catch (err) {
-               // throw wrapError(err, Unstable.ForeignNetworkError, "Unable to create \"_matrix\" webhook");
-               log.warn("Unable to create _matrix webook:", err);
+                // throw wrapError(err, Unstable.ForeignNetworkError, "Unable to create \"_matrix\" webhook");
+                log.warn("Unable to create _matrix webook:", err);
             }
         }
         try {
@@ -656,7 +656,7 @@ export class DiscordBot {
         log.info(`Got redact request for ${event.redacts}`);
         log.verbose(`Event:`, event);
 
-        const storeEvent = await this.store.Get(DbEvent, {matrix_id: `${event.redacts};${event.room_id}`});
+        const storeEvent = await this.store.Get(DbEvent, { matrix_id: `${event.redacts};${event.room_id}` });
 
         if (!storeEvent || !storeEvent.Result) {
             log.warn(`Could not redact because the event was not in the store.`);
@@ -686,7 +686,7 @@ export class DiscordBot {
 
     public async GetDiscordUserOrMember(
         userId: Discord.Snowflake, guildId?: Discord.Snowflake,
-    ): Promise<Discord.User|Discord.GuildMember|undefined> {
+    ): Promise<Discord.User | Discord.GuildMember | undefined> {
         try {
             const guild = guildId && await this.bot.guilds.fetch(guildId);
             if (guild) {
@@ -732,7 +732,7 @@ export class DiscordBot {
         if (!id.match(/^\d+$/)) {
             throw new Error("Non-numerical ID");
         }
-        const dbEmoji = await this.store.Get(DbEmoji, {emoji_id: id});
+        const dbEmoji = await this.store.Get(DbEmoji, { emoji_id: id });
         if (!dbEmoji) {
             throw new Error("Couldn't fetch from store");
         }
@@ -752,7 +752,7 @@ export class DiscordBot {
     }
 
     public async GetRoomIdsFromGuild(
-            guild: Discord.Guild, member?: Discord.GuildMember, useCache: boolean = true): Promise<string[]> {
+        guild: Discord.Guild, member?: Discord.GuildMember, useCache: boolean = true): Promise<string[]> {
         if (useCache) {
             const res = this.roomIdsForGuildCache.get(`${guild.id}:${member ? member.id : ""}`);
 
@@ -775,7 +775,7 @@ export class DiscordBot {
                 log.verbose(`No rooms were found for this guild and member (guild:${guild.id} member:${member.id})`);
                 throw new Error("Room(s) not found.");
             }
-            this.roomIdsForGuildCache.set(`${guild.id}:${guild.member}`, {roomIds: rooms, ts: Date.now()});
+            this.roomIdsForGuildCache.set(`${guild.id}:${guild.member}`, { roomIds: rooms, ts: Date.now() });
             return rooms;
         } else {
             const rooms = await this.store.roomStore.getEntriesByRemoteRoomData({
@@ -786,13 +786,13 @@ export class DiscordBot {
                 throw new Error("Room(s) not found.");
             }
             const roomIds = rooms.map((room) => room.matrix!.getId());
-            this.roomIdsForGuildCache.set(`${guild.id}:`, {roomIds, ts: Date.now()});
+            this.roomIdsForGuildCache.set(`${guild.id}:`, { roomIds, ts: Date.now() });
             return roomIds;
         }
     }
 
     public async HandleMatrixKickBan(
-        roomId: string, kickeeUserId: string, kicker: string, kickban: "leave"|"ban",
+        roomId: string, kickeeUserId: string, kicker: string, kickban: "leave" | "ban",
         previousState: string, reason?: string,
     ) {
         const restore = kickban === "leave" && previousState === "ban";
@@ -837,7 +837,7 @@ export class DiscordBot {
             return;
         }
         const existingPerms = tchan.permissionsFor(kickee);
-        if (existingPerms && existingPerms.has(Discord.Permissions.FLAGS.VIEW_CHANNEL as number) === false ) {
+        if (existingPerms && existingPerms.has(Discord.Permissions.FLAGS.VIEW_CHANNEL as number) === false) {
             log.warn("User isn't allowed to read anyway.");
             return;
         }
@@ -874,7 +874,7 @@ export class DiscordBot {
     }
 
     public async GetEmojiByMxc(mxc: string): Promise<DbEmoji> {
-        const dbEmoji = await this.store.Get(DbEmoji, {mxc_url: mxc});
+        const dbEmoji = await this.store.Get(DbEmoji, { mxc_url: mxc });
         if (!dbEmoji || !dbEmoji.Result) {
             throw new Error("Couldn't fetch from store");
         }
@@ -939,8 +939,8 @@ export class DiscordBot {
     }
 
     private async SendMatrixMessage(matrixMsg: IDiscordMessageParserResult, chan: Discord.Channel,
-                                    guild: Discord.Guild, author: Discord.User,
-                                    msgID: string): Promise<boolean> {
+        guild: Discord.Guild, author: Discord.User,
+        msgID: string): Promise<boolean> {
         const rooms = await this.channelSync.GetRoomIdsFromChannel(chan);
         const intent = this.GetIntentFromDiscordMember(author);
 
@@ -965,13 +965,13 @@ export class DiscordBot {
         return true;
     }
 
-    private async OnTyping(channel: Discord.Channel, user: Discord.User|Discord.PartialUser, isTyping: boolean) {
+    private async OnTyping(channel: Discord.Channel, user: Discord.User | Discord.PartialUser, isTyping: boolean) {
         const rooms = await this.channelSync.GetRoomIdsFromChannel(channel);
         try {
             const intent = this.GetIntentFromDiscordMember(user);
             await intent.ensureRegistered();
             this.userActivity.updateUserActivity(intent.userId);
-            await Promise.all(rooms.map( async (roomId) => {
+            await Promise.all(rooms.map(async (roomId) => {
                 return intent.underlyingClient.setTyping(roomId, isTyping);
             }));
             const typingKey = `${user.id}:${channel.id}`;
@@ -1009,11 +1009,11 @@ export class DiscordBot {
         // Test for webhooks
         if (msg.webhookID) {
             const webhook = (await chan.fetchWebhooks())
-                            .filter((h) => h.name === "_matrix").first();
+                .filter((h) => h.name === "_matrix").first();
             if (webhook && msg.webhookID === webhook.id) {
                 // Filter out our own webhook messages.
                 log.verbose("Not reflecting own webhook messages");
-              // Filter out our own webhook messages.
+                // Filter out our own webhook messages.
                 MetricPeg.get.requestOutcome(msg.id, true, "dropped");
                 return;
             }
@@ -1121,7 +1121,7 @@ export class DiscordBot {
                         rel_type: "m.replace",
                     };
                 }
-                const trySend = async () =>  intent.sendEvent(room, sendContent);
+                const trySend = async () => intent.sendEvent(room, sendContent);
                 const afterSend = async (eventId) => {
                     this.lastEventIds[room] = eventId;
                     const evt = new DbEvent();
@@ -1139,7 +1139,7 @@ export class DiscordBot {
                     res = await trySend();
                     await afterSend(res);
                 } catch (e) {
-                    if (e.errcode !== "M_FORBIDDEN" && e.errcode !==  "M_GUEST_ACCESS_FORBIDDEN") {
+                    if (e.errcode !== "M_FORBIDDEN" && e.errcode !== "M_GUEST_ACCESS_FORBIDDEN") {
                         log.error("Failed to send message into room.", e);
                         return;
                     }
@@ -1165,7 +1165,7 @@ export class DiscordBot {
             return;
         }
         log.info(`Got edit event for ${newMsg.id}`);
-        const storeEvent = await this.store.Get(DbEvent, {discord_id: oldMsg.id});
+        const storeEvent = await this.store.Get(DbEvent, { discord_id: oldMsg.id });
         if (storeEvent && storeEvent.Result) {
             while (storeEvent.Next()) {
                 const matrixIds = storeEvent.MatrixId.split(";");
@@ -1179,7 +1179,7 @@ export class DiscordBot {
 
     private async DeleteDiscordMessage(msg: Discord.Message) {
         log.info(`Got delete event for ${msg.id}`);
-        const storeEvent = await this.store.Get(DbEvent, {discord_id: msg.id});
+        const storeEvent = await this.store.Get(DbEvent, { discord_id: msg.id });
         if (!storeEvent || !storeEvent.Result) {
             log.warn(`Could not redact because the event was not in the store.`);
             return;
@@ -1248,16 +1248,16 @@ export class DiscordBot {
 
 class AdminNotifier {
     constructor(
-        private client:    MatrixClient,
+        private client: MatrixClient,
         private adminMxid: string,
-    ) {}
+    ) { }
 
     public async notify(message: string) {
         const roomId = await this.ensureDMRoom(this.adminMxid);
         await this.client.sendText(roomId, message)
     }
 
-    private async findDMRoom(targetMxid: string): Promise<string|undefined> {
+    private async findDMRoom(targetMxid: string): Promise<string | undefined> {
         const rooms = await this.client.getJoinedRooms();
         const roomsWithMembers = await Promise.all(rooms.map(async (id) => {
             return {
@@ -1268,7 +1268,7 @@ class AdminNotifier {
 
         return roomsWithMembers.find(
             room => room.memberships.length == 2
-                 && !!room.memberships.find(member => member.stateKey === targetMxid)
+                && !!room.memberships.find(member => member.stateKey === targetMxid)
         )?.id;
     }
 
