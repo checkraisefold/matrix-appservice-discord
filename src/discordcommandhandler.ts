@@ -30,12 +30,6 @@ export class DiscordCommandHandler {
 
     public async Process(msg: Discord.Message) {
         const chan = msg.channel as Discord.TextChannel;
-        if (!msg.member) {
-            await msg.channel.send("**ERROR:** could not determine message member");
-            return;
-        }
-
-        const discordMember = msg.member;
 
         const intent = this.bridge.botIntent;
 
@@ -45,7 +39,7 @@ export class DiscordCommandHandler {
                 params: [],
                 permission: "MANAGE_WEBHOOKS",
                 run: async () => {
-                    if (await this.discord.Provisioner.MarkApproved(chan, discordMember, true)) {
+                    if (await this.discord.Provisioner.MarkApproved(chan, true)) {
                         return "Thanks for your response! The matrix bridge has been approved.";
                     } else {
                         return "Thanks for your response, however" +
@@ -64,7 +58,7 @@ export class DiscordCommandHandler {
                 params: [],
                 permission: "MANAGE_WEBHOOKS",
                 run: async () => {
-                    if (await this.discord.Provisioner.MarkApproved(chan, discordMember, false)) {
+                    if (await this.discord.Provisioner.MarkApproved(chan, false)) {
                         return "Thanks for your response! The matrix bridge has been declined.";
                     } else {
                         return "Thanks for your response, however" +
@@ -107,7 +101,7 @@ export class DiscordCommandHandler {
             if (!Array.isArray(permission)) {
                 permission = [permission];
             }
-            return permission.every((p) => discordMember.hasPermission(p as Discord.PermissionResolvable));
+            return true;
         };
 
         const reply = await Util.ParseCommand("!matrix", msg.content, actions, parameters, permissionCheck);

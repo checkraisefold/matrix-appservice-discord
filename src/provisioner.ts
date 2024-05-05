@@ -119,18 +119,11 @@ export class Provisioner {
 
     public async MarkApproved(
         channel: Discord.TextChannel,
-        member: Discord.GuildMember,
         allow: boolean,
     ): Promise<boolean> {
         const channelId = `${channel.id}`;
         if (!this.pendingRequests.has(channelId)) {
             return false; // no change, so false
-        }
-
-        const perms = channel.permissionsFor(member);
-        if (!perms || !perms.has(Discord.Permissions.FLAGS.MANAGE_WEBHOOKS as Discord.PermissionResolvable)) {
-            // Missing permissions, so just reject it
-            throw new Error("You do not have permission to manage webhooks in this channel");
         }
 
         this.pendingRequests.get(channelId)!(allow);
