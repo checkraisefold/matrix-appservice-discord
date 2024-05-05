@@ -47,7 +47,7 @@ export class MatrixEventProcessorOpts {
         readonly bridge: Appservice,
         readonly discord: DiscordBot,
         readonly store: DiscordStore,
-        ) {
+    ) {
 
     }
 }
@@ -65,7 +65,7 @@ export class MatrixEventProcessor {
     private store: DiscordStore;
     private matrixMsgProcessor: MatrixMessageProcessor;
     private mxCommandHandler: MatrixCommandHandler;
-    private mxUserProfileCache: TimedCache<string, {displayname: string, avatar_url: string|undefined}>;
+    private mxUserProfileCache: TimedCache<string, { displayname: string, avatar_url: string | undefined }>;
 
     constructor(opts: MatrixEventProcessorOpts, cm?: MatrixCommandHandler) {
         this.config = opts.config;
@@ -118,7 +118,7 @@ export class MatrixEventProcessor {
                     event.room_id,
                     event.state_key,
                     event.sender,
-                    event.content!.membership as "leave"|"ban",
+                    event.content!.membership as "leave" | "ban",
                     prevMembership,
                     event.content!.reason,
                 );
@@ -164,7 +164,7 @@ export class MatrixEventProcessor {
         });
         const channel = await this.discord.GetChannelFromRoomId(roomId);
         await (channel as Discord.TextChannel).send(
-          "Someone on Matrix has turned on encryption in this room, so the service will not bridge any new messages",
+            "Someone on Matrix has turned on encryption in this room, so the service will not bridge any new messages",
         );
         await sendPromise;
         await this.bridge.botIntent.underlyingClient.leaveRoom(roomId);
@@ -183,13 +183,13 @@ export class MatrixEventProcessor {
         const channelId = room.data.discord_channel!;
         const mxClient = this.bridge.botClient;
         log.verbose(`Looking up ${guildId}_${channelId}`);
-        const roomLookup = await this.discord.LookupRoom(guildId, channelId, event.sender);
+        const roomLookup = await this.discord.LookupRoom(channelId, event.sender);
         const chan = roomLookup.channel;
 
         let editEventId = "";
         if (event.content && event.content["m.relates_to"] && event.content["m.relates_to"].rel_type === "m.replace") {
             const editMatrixId = `${event.content["m.relates_to"].event_id};${event.room_id}`;
-            const storeEvent = await this.store.Get(DbEvent, {matrix_id: editMatrixId});
+            const storeEvent = await this.store.Get(DbEvent, { matrix_id: editMatrixId });
             if (storeEvent && storeEvent.Result && storeEvent.Next()) {
                 editEventId = storeEvent.DiscordId;
             }
@@ -198,7 +198,7 @@ export class MatrixEventProcessor {
         const embedSet = await this.EventToEmbed(event, chan);
         const opts: Discord.MessageOptions = {};
         const file = await this.HandleAttachment(event, mxClient, roomLookup.canSendEmbeds);
-        if (typeof(file) === "string") {
+        if (typeof (file) === "string") {
             embedSet.messageEmbed.description += " " + file;
         } else if ((file as Discord.FileOptions).name && (file as Discord.FileOptions).attachment) {
             opts.files = [file as Discord.FileOptions];
@@ -206,7 +206,7 @@ export class MatrixEventProcessor {
             embedSet.imageEmbed = file as Discord.MessageEmbed;
         }
 
-    // Throws an `Unstable.ForeignNetworkError` when sending the message fails.
+        // Throws an `Unstable.ForeignNetworkError` when sending the message fails.
         if (editEventId) {
             await this.discord.edit(embedSet, opts, roomLookup, event, editEventId);
         } else {
@@ -328,7 +328,7 @@ export class MatrixEventProcessor {
         event: IMatrixEvent,
         mxClient: MatrixClient,
         sendEmbeds: boolean = false,
-    ): Promise<string|Discord.FileOptions|Discord.MessageEmbed> {
+    ): Promise<string | Discord.FileOptions | Discord.MessageEmbed> {
         if (!this.HasAttachment(event)) {
             return "";
         }
@@ -340,7 +340,7 @@ export class MatrixEventProcessor {
         if (!event.content.info) {
             // Fractal sends images without an info, which is technically allowed
             // but super unhelpful:  https://gitlab.gnome.org/World/fractal/issues/206
-            event.content.info = {mimetype: "", size: 0};
+            event.content.info = { mimetype: "", size: 0 };
         }
 
         if (!event.content.url) {
@@ -371,7 +371,7 @@ export class MatrixEventProcessor {
     public async GetEmbedForReply(
         event: IMatrixEvent,
         channel: Discord.TextChannel,
-    ): Promise<Discord.MessageEmbed|undefined> {
+    ): Promise<Discord.MessageEmbed | undefined> {
         if (!event.content) {
             event.content = {};
         }
@@ -425,7 +425,7 @@ export class MatrixEventProcessor {
 
     private async GetUserProfileForRoom(roomId: string, userId: string) {
         const mxClient = this.bridge.botIntent.underlyingClient;
-        let profile: {displayname: string, avatar_url: string|undefined} | undefined;
+        let profile: { displayname: string, avatar_url: string | undefined } | undefined;
         try {
             // First try to pull out the room-specific profile from the cache.
             profile = this.mxUserProfileCache.get(`${roomId}:${userId}`);
@@ -490,7 +490,8 @@ export class MatrixEventProcessor {
 
     private async SetEmbedAuthor(embed: Discord.MessageEmbed, sender: string, profile?: {
         displayname: string,
-        avatar_url: string|undefined }) {
+        avatar_url: string | undefined
+    }) {
         let displayName = sender;
         let avatarUrl;
 
