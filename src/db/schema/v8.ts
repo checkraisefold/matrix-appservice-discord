@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import {IDbSchema} from "./dbschema";
-import {DiscordStore} from "../../store";
+import { IDbSchema } from "./dbschema";
+import { DiscordStore } from "../../store";
 
 export class Schema implements IDbSchema {
     public description = "create room store tables";
@@ -28,7 +28,6 @@ export class Schema implements IDbSchema {
         await store.createTable(`
             CREATE TABLE remote_room_data (
                 room_id TEXT NOT NULL,
-                discord_guild TEXT NOT NULL,
                 discord_channel TEXT NOT NULL,
                 discord_name TEXT DEFAULT NULL,
                 discord_topic TEXT DEFAULT NULL,

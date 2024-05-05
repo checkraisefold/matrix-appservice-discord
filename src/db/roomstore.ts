@@ -49,7 +49,7 @@ interface IRemoteRoomDataLazy {
 export class RemoteStoreRoom {
     public data: IRemoteRoomDataLazy;
     constructor(public readonly roomId: string, data: IRemoteRoomDataLazy) {
-        for (const k of ["discord_guild", "discord_channel", "discord_name",
+        for (const k of ["discord_channel", "discord_name",
             "discord_topic", "discord_iconurl", "discord_iconurl_mxc", "discord_type"]) {
             data[k] = typeof (data[k]) === "number" ? String(data[k]) : data[k] || null;
         }
@@ -343,7 +343,6 @@ export class DbRoomStore {
             await this.db.Run(
                 `INSERT INTO remote_room_data VALUES (
                 $id,
-                $discord_guild,
                 $discord_channel,
                 $discord_name,
                 $discord_topic,
